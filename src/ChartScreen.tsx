@@ -15,13 +15,17 @@ import Animated, {
   eq,
   modulo,
   sub,
+  useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import { onGestureEvent, useValues } from "react-native-redash/lib/module/v1";
 import {
   State,
+  TapGestureHandler,
   PanGestureHandler,
   GestureHandlerRootView,
   LongPressGestureHandler,
+  PinchGestureHandlerGestureEvent,
+  PinchGestureHandler,
 } from "react-native-gesture-handler";
 import Chart from "./Chart";
 import ChartInfo from "./ChartInfo";
@@ -123,7 +127,12 @@ const StockScreen = () => {
   const translateY = diffClamp(y, 0, width);
   const translateX = add(sub(x, modulo(x, caliber)), caliber / 2);
 
-  const longPressRef = useRef();
+  const pinchHandler =
+    useAnimatedGestureHandler<PinchGestureHandlerGestureEvent>({
+      onActive: (event) => {
+        console.log(event);
+      },
+    });
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -198,41 +207,37 @@ const StockScreen = () => {
         {/* CHART END */}
 
         {/* SCRUBBER START */}
-        <LongPressGestureHandler minDurationMs={800} ref={longPressRef}>
-          <Animated.View style={StyleSheet.absoluteFill}>
-            <PanGestureHandler
-              waitFor={longPressRef}
-              minDist={0}
-              {...gestureHandler}
-            >
-              <Animated.View style={StyleSheet.absoluteFill}>
-                {/* HORIZONTAL LINE START */}
-                <Animated.View
-                  style={{
-                    transform: [{ translateY }],
-                    opacity,
-                    ...StyleSheet.absoluteFillObject,
-                  }}
-                >
-                  <ScrubberLine x={width} y={0} />
-                </Animated.View>
-                {/* HORIZONTAL LINE END */}
+        <PinchGestureHandler onGestureEvent={pinchHandler}>
+          <Animated.View style={StyleSheet.absoluteFill}></Animated.View>
+        </PinchGestureHandler>
 
-                {/* VERTICAL LINE START */}
-                <Animated.View
-                  style={{
-                    ...StyleSheet.absoluteFillObject,
-                    opacity,
-                    transform: [{ translateX }],
-                  }}
-                >
-                  <ScrubberLine x={0} y={width} />
-                </Animated.View>
-                {/* VERTICAL LINE END */}
-              </Animated.View>
-            </PanGestureHandler>
+        <PanGestureHandler minDist={100} {...gestureHandler}>
+          <Animated.View style={StyleSheet.absoluteFill}>
+            {/* HORIZONTAL LINE START */}
+            <Animated.View
+              style={{
+                transform: [{ translateY }],
+                opacity,
+                ...StyleSheet.absoluteFillObject,
+              }}
+            >
+              <ScrubberLine x={width} y={0} />
+            </Animated.View>
+            {/* HORIZONTAL LINE END */}
+
+            {/* VERTICAL LINE START */}
+            <Animated.View
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                opacity,
+                transform: [{ translateX }],
+              }}
+            >
+              <ScrubberLine x={0} y={width} />
+            </Animated.View>
+            {/* VERTICAL LINE END */}
           </Animated.View>
-        </LongPressGestureHandler>
+        </PanGestureHandler>
         {/* SCRUBBER END */}
       </View>
 
